@@ -31,4 +31,6 @@ ccid: jblazusi
 
 References
 ========================
+https://stackoverflow.com/questions/14412211/get-the-mimetype-of-a-file-with-python
+https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
 
