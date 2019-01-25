@@ -41,17 +41,19 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         #string data 
         data = self.data.decode().split("\r\n")
-        print(data)
         header = data[0].split(" ")   
 
         #GET METHOD 
         method = header[0]
         #GET path 
-        print(header[1])
+        file_path = os.path.abspath(os.getcwd() + "/www" + header[1])
+        # if os.path.isdir(file_path):
+        #     file_path += "/"
+        #     status_code = "301 Permanently moved to {}\r\n".format(file_path)
 
-        file_path = os.getcwd() + "/www" + header[1]
-        if file_path[-1] == "/":
-            file_path += "index.html"
+        if header[1][-1] == "/":
+            file_path += "/index.html"
+
 
         #GET PROTOCOL  
         protocol = header[2] 
@@ -64,27 +66,28 @@ class MyWebServer(socketserver.BaseRequestHandler):
         else: 
             mime_type = "Content-Type: text/html\r\n"
 
+
         #GET STATUS CODE AND CONTENT 
         if method != "GET":
             status_code = "405 Method Not Allowed\r\n"
             content = "<h1>{}</h1>".format(status_code)
             
         else:
-            if os.path.isfile(file_path):
-                status_code = "200 OK\r\n"
+            #https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
+            if os.path.isfile(file_path) and "www" in file_path :
+                if status_code == None:
+                    status_code = "200 OK\r\n"
                 content = open(file_path, "r").read()
 
 
             else: 
-                status_code = "404 Not Found\r\n"
-                content = "<h1>{}</h1>".format(status_code)
+                status_code = "404 Not Found"
+                content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>{}</title>\r\n</head>\rn</html>".format(status_code)
 
     
 
         #SEND 
-        print(file_path)
-        reponse = protocol + " " + status_code + mime_type + content + "\r\n"
-        print(reponse)
+        reponse = protocol + " " + status_code + mime_type + "\r\n" + content + "\r\n"
         self.request.sendall(reponse.encode())
 
         
