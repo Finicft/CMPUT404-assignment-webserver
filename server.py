@@ -1,8 +1,9 @@
 #  coding: utf-8 
 import socketserver
 import os
+import mimetypes
 
-# Copyright 2013 Abram Hindle, Eddie Antonio Santos
+# Copyright 2013 Abram Hindle, Eddie Antonio Santos, Fangting Chen
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,25 +48,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
         method = header[0]
         #GET path 
         file_path = os.path.abspath(os.getcwd() + "/www" + header[1])
-        # if os.path.isdir(file_path):
-        #     file_path += "/"
-        #     status_code = "301 Permanently moved to {}\r\n".format(file_path)
+        if os.path.isdir(file_path) and header[1][-1] != "/":
+            file_path += "/index.html"
+            status_code = "301 Permanently moved to {}\r\n".format(file_path)
 
         if header[1][-1] == "/":
             file_path += "/index.html"
-
+ 
 
         #GET PROTOCOL  
         protocol = header[2] 
 
        #GET MIME TYPE
-        root, ext = os.path.splitext(file_path)
-        mime_type = ext 
-        if mime_type == ".css":
-            mime_type = "Content-Type: text/css\r\n"
-        else: 
-            mime_type = "Content-Type: text/html\r\n"
-
+       #https://stackoverflow.com/questions/14412211/get-the-mimetype-of-a-file-with-python
+        mime_type = mimetypes.guess_type(file_path)[0]
+        if mime_type == None:
+            mime_type = "text/html"
+        mime_type = "Content-Type: " + mime_type + "\r\n"
+        
 
         #GET STATUS CODE AND CONTENT 
         if method != "GET":
@@ -77,12 +77,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
             if os.path.isfile(file_path) and "www" in file_path :
                 if status_code == None:
                     status_code = "200 OK\r\n"
+                   
                 content = open(file_path, "r").read()
 
 
             else: 
                 status_code = "404 Not Found"
-                content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>{}</title>\r\n</head>\rn</html>".format(status_code)
+                content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>{}</title>\r\n</head>\r\n</html>".format(status_code)
 
     
 
@@ -91,22 +92,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.request.sendall(reponse.encode())
 
         
-
-        
-
-        #self.data is binary, decode into string header, if GET print status code 
-
-        #response = base_html 
-        #self.request.sendall(response)
-        # if os.path.exists(base_path):
-        #     base_html = open(base_path,"r").read()
-        # else: 
-        #     print("404 ")
-
-
-        #print ("Got a request of: %s\n" % self.data)
-        #self.request.sendall(bytearray("OK",'utf-8'))
-
     
         
 if __name__ == "__main__":
