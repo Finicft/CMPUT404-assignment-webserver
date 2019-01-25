@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -30,10 +31,81 @@ import socketserver
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
-        self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
 
+        method = None 
+        status_code = None 
+        mime_type = None 
+        content = None 
+
+
+        self.data = self.request.recv(1024).strip()
+        #string data 
+        data = self.data.decode().split("\r\n")
+        print(data)
+        header = data[0].split(" ")   
+
+        #GET METHOD 
+        method = header[0]
+        #GET path 
+        print(header[1])
+
+        file_path = os.getcwd() + "/www" + header[1]
+        if file_path[-1] == "/":
+            file_path += "index.html"
+
+        #GET PROTOCOL  
+        protocol = header[2] 
+
+       #GET MIME TYPE
+        root, ext = os.path.splitext(file_path)
+        mime_type = ext 
+        if mime_type == ".css":
+            mime_type = "Content-Type: text/css\r\n"
+        else: 
+            mime_type = "Content-Type: text/html\r\n"
+
+        #GET STATUS CODE AND CONTENT 
+        if method != "GET":
+            status_code = "405 Method Not Allowed\r\n"
+            content = "<h1>{}</h1>".format(status_code)
+            
+        else:
+            if os.path.isfile(file_path):
+                status_code = "200 OK\r\n"
+                content = open(file_path, "r").read()
+
+
+            else: 
+                status_code = "404 Not Found\r\n"
+                content = "<h1>{}</h1>".format(status_code)
+
+    
+
+        #SEND 
+        print(file_path)
+        reponse = protocol + " " + status_code + mime_type + content + "\r\n"
+        print(reponse)
+        self.request.sendall(reponse.encode())
+
+        
+
+        
+
+        #self.data is binary, decode into string header, if GET print status code 
+
+        #response = base_html 
+        #self.request.sendall(response)
+        # if os.path.exists(base_path):
+        #     base_html = open(base_path,"r").read()
+        # else: 
+        #     print("404 ")
+
+
+        #print ("Got a request of: %s\n" % self.data)
+        #self.request.sendall(bytearray("OK",'utf-8'))
+
+    
+        
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
 
