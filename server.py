@@ -83,7 +83,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
             else: 
                 status_code = "404 Not Found"
-                content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>{}</title>\r\n</head>\r\n</html>".format(status_code)
+                content = "<h1>404 NOT FOUND</h1>"
+
+                #content = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n<title>{}</title>\r\n</head>\r\n</html>".format(status_code)
 
     
 
